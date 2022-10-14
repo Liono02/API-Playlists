@@ -19,7 +19,8 @@
   },
   "homepage": "https://github.com/Liono02/API-Playlists#readme",
   "dependencies": {
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "mongoose": "^6.6.5"
   },
   "devDependencies": {
     "@babel/cli": "^7.19.3",
