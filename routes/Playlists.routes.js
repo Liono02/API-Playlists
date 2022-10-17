@@ -2,7 +2,9 @@ import express from 'express'
 
 const router = express.Router()
 
-let lists = [
+import PlayList from '../models/paylist.model'
+
+/*let lists = [
     {
         nombre: "rock",
         descripcion: "Lista de reproduccion sobre canciones de rock",
@@ -60,134 +62,146 @@ let lists = [
             }
         ]
     }
-]
+]*/
 
 //endpoints
 
-router.get('/lists', (req, res) => {
-    res.send(lists)
-})
-
-router.get('/lists/:nombre', (req, res) => {
-    let nombre = req.params.nombre
-    let list = lists.find(x => x.nombre == nombre)
-    if (list == null) {
-        res.status(404).send("404 Not Found")
-        return
+router.get('/lists', async (req, res) => {
+    try 
+    {
+        const list = await PlayList.find()
+        res.send(list)
+    } catch (err)
+    {
+        res.status(500).send(err)
     }
-
-    res.send(list)
 })
 
-router.get('/lists/:nombre/canciones', (req, res) => {
-    let nombre = req.params.nombre
-    let list = lists.find(x => x.nombre == nombre)
-    res.send(list.canciones)
-})
-
-router.get('/lists/:nombre/canciones/:nombreCancion', (req, res) => {
-    let nombre = req.params.nombre
-    let nombreCancion = req.params.nombreCancion
-    let list = lists.find(x => x.nombre == nombre)
-    let song = list.canciones.find(x => x.nombreCancion == nombreCancion)
-    if (song == null || name == null) {
-        res.status(404).send("404 Not Found")
-    } 
-    res.send(song)
-})
-
-router.post('/lists', (req, res) => {
-    let nombre = req.body.nombre
-    let descripcion = req.body.descripcion
-    let canciones = req.body.canciones
-    if (nombre == null || nombre == '') {
-        res.status(400).send("400 Bad Request")
-        return
+router.get('/lists/:nombre', async (req, res) => {
+    try 
+    {
+        let nombre = req.params.nombre
+        const list = await PlayList.findOne({ nombre: nombre })
+        res.send(list)
+    } catch (err) 
+    {
+        res.status(500).send(err)
     }
-
-    lists.push({ nombre: nombre, descripcion: descripcion, canciones: canciones })
-    res.status(201).send(lists)
 })
 
-router.post('/lists/:nombre/canciones', (req, res) => {
-    let nombre = req.params.nombre
-    let canciones = req.body.canciones
-    let nombreCancion = req.body.nombreCancion
-    let autor = req.body.autor
-    let album = req.body.album
-    let anio = req.body.anio
-    let list = lists.find(x => x.nombre == nombre)
-    if (list == null) {
-        res.status(404).send("404 Not Found")
-        return
+router.get('/lists/:nombre/canciones', async (req, res) => {
+    try 
+    {
+        let nombre = req.params.nombre
+        const list = await PlayList.findOne({ nombre: nombre })
+        res.send(list.canciones)
+    } catch(err) 
+    {
+        res.status(500).send(err)
     }
-
-    list.canciones.push({ nombreCancion: nombreCancion, autor: autor, album: album, anio: anio })
-    res.status(201).send(canciones)
 })
 
-router.put('/lists/:nombre', (req, res) => {
-    let nombre = req.params.nombre
-    let lNombre = req.body.nombre
-    let list = lists.find(x => x.nombre == nombre)
-    if (list == null) {
-        res.status(404).send("404 Not Found")
-        return
+router.get('/lists/:nombre/canciones/:nombreCancion', async (req, res) => {
+    try
+    {
+        let nombre = req.params.nombre
+        let nombreCancion = req.params.nombreCancion
+        const list = await PlayList.findOne({ nombre: nombre })
+        let song = await PlayList.canciones.findOne({nombre: nombre, nombreCancion: nombreCancion })
+        res.send(song)
+    } catch (err)
+    {
+        res.status(500).send(err)
     }
-    if (lNombre != list.nombre) {
-        res.status(409).send("409 Conflict")
-        return
-    }    
-    else
-    res.status(204).send(list)     
 })
 
-router.put('/lists/:nombre/canciones/:nombreCancion', (req, res) => {
-    let nombre = req.params.nombre
-    let nombreCancion = req.params.nombreCancion
-    let list = lists.find(x => x.nombre == nombre)
-    if (list == null) {
-        res.status(404).send("404 Not Found")
-        return
+router.post('/lists', async (req, res) => {
+    try
+    {
+        const list = req.body
+        if (nombre == '') 
+        {
+            res.status(400).send("400 Bad Request")
+            return
+        }
+        await PlayList.create(list)
+        res.status(201).send(list)
+    } catch (err) 
+    {
+        res.status(500).send(err)
     }
-    let cancion = list.canciones.find(x => x.nombreCancion == nombreCancion)
-    if (cancion == null) {
-        res.status(404).send("404 Not Found")
-    }
-
-    cancion.nombreCancion = req.body.nombreCancion
-    cancion.autor = req.body.autor
-    cancion.album = req.body.album
-    cancion.anio = req.body.anio
-    res.send(cancion)
 })
 
-router.delete('/lists/:nombre', (req, res) => {
-    let nombre = req.params.nombre
-    let listToDelete = lists.filter(x => x.nombre == nombre).at(0)
-    if (listToDelete == null)
-        res.status(404).send("404 Not Found")
-        
-    let index = lists.indexOf(listToDelete)
-    lists.splice(index, 1)
-    res.status(204).send("Se elimino la PlayList")
+router.post('/lists/:nombre/canciones', async (req, res) => {
+    try
+    {
+        let nombre = req.params.nombre
+        const song = req.body
+        await PlayList.canciones.create(({nombre: nombre}), song)
+        res.status(201).send(canciones)
+    } catch(err) 
+    {
+        res.status(500).send(err)
+    }
 })
 
-router.delete('/lists/:nombre/canciones/:nombreCancion', (req, res) => {
-    let nombre = req.params.nombre
-    let nombreCancion = req.params.nombreCancion
-    let list = lists.find(x => x.nombre == nombre)
-    if (list == null) {
-        res.status(404).send("404 Not Found")
-        return
+router.put('/lists/:nombre', async (req, res) => {
+    try 
+    {
+        let nombre = req.params.nombre
+        let list = req.body
+        await PlayList.findOneAndUpdate({ nombre: nombre }, list)
+        if (nombre != list.nombre) 
+        {
+            res.status(409).send("409 Conflict")
+            return
+        }    
+        const listResponse = await PlayList.findOne({ nombre: nombre })
+        res.send(listResponse)       
+    } catch (err)
+    {
+        res.status(500).send(err)
+    }     
+})
+
+router.put('/lists/:nombre/canciones/:nombreCancion', async (req, res) => {
+    try 
+    {
+        let nombre = req.params.nombre
+        let nombreCancion = req.params.nombreCancion
+        let song = req.body.cancion
+        await PlayList.canciones.findOneAndUpdate({nombre: nombre, nombreCancion: nombreCancion }, song)
+        const songResponse = await PlayList.canciones.findOne({ nombreCancion: nombreCancion })
+        res.send(songResponse)
+    } catch (err) 
+    {
+        res.status(500).send(err)
     }
-    let cancion = list.canciones.filter(x => x.nombreCancion == nombreCancion).at(0)
-    if (cancion == null) {
-        res.status(404).send("404 Not Found")
+})
+
+router.delete('/lists/:nombre', async (req, res) => {
+    try
+    {
+        let nombre = req.params.nombre
+        await PlayList.findOneAndRemove({ nombre: nombre })
+        res.status(204).send()
+    } catch (err) 
+    {
+        res.status(500).send(err)
     }
-    let index = list.canciones.indexOf(cancion)
-    list.canciones.splice(index, 1)
-    res.status(204).send("Se elimino la cancion")
+})
+
+router.delete('/lists/:nombre/canciones/:nombreCancion', async (req, res) => {
+    try
+    {
+        let nombre = req.params.nombre
+        let nombreCancion = req.params.nombreCancion
+        await PlayList.canciones.findOneAndRemove({nombre: nombre, nombreCancion: nombreCancion})
+        res.status(204).send()
+    } catch (err) 
+    {
+        res.status(500).send(err)
+    }
 })
 
 
