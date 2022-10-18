@@ -9,25 +9,18 @@ const playlistSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    contraseña: {
+    canciones: {
         type: Array,
-        required: true
-    },
-    nombre: {
-        type: String,
-        required: true
-    },
-    roles: {
-        type: Array,
-        required: false
+        required: false,
     }
 },
     {
+        collection: 'playlists', 
         timestamps: true,
         versionKey: false
     }
 )
 
-const Usuario = mongoose.model('Usuario', usuarioSchema)
+const PlayList = mongoose.model('Playlist', playlistSchema)
 
-export default Usuario
+export default PlayList
