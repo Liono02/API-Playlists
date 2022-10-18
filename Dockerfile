@@ -1,26 +1,13 @@
-FROM node:18 AS base
+FROM node:18
 
-WORKDIR /app
+WORKDIR /usr/src/app
 
-FROM base AS builder
-
-COPY package*.json .babelrc ./
+COPY package*.json ./
 
 RUN npm install
 
-COPY ./src ./src
-
-RUN npm run build
-
-RUN npm prune --production 
-
-FROM base AS release
-
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/dist ./dist
+COPY . .
 
 EXPOSE 3000
 
-USER node
-
-CMD ["node", "./dist/app.js"]
+CMD [ "node", "app.js" ]
